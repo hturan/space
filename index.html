@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Space</title>
+
+  <style type="text/css">
+  /*
+  #090B12
+  #F24E45
+  #FFF154
+  */
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  #canvas {
+    width: 100%;
+    height: 100%;
+    background-color: #090B12;
+  }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+
+  <script type="text/javascript">
+    function Star (x, y) {
+      this.x = x;
+      this.y = y;
+
+      this.distance = null;
+
+      this.selected = false;
+
+      this.render = function () {
+        ctx.fillStyle = "#FFF";
+
+        // Draw star body
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 3, 0, Math.PI*2);
+        ctx.fill();
+
+        // Draw distance tag
+        ctx.font = "14px 'SanFranciscoDisplay-Regular'";
+        ctx.fillText(''+this.distance.toFixed(3), this.x-4,this.y-10);
+
+        // Draw selected border
+        if (this.selected) {
+          ctx.strokeStyle = "#FFF";
+          ctx.setLineDash([5, 3]);
+
+          ctx.beginPath();
+
+          ctx.arc(this.x, this.y, 40, 0, Math.PI*2);
+
+          ctx.stroke();
+        }
+      }
+    }
+
+    function Player () {
+      this.x = canvas.width / 2;
+      this.y = canvas.height / 2;
+
+      this.recentPositions = [];
+
+      this.render = function () {
+        this.recentPositions.push({x: this.x, y: this.y});
+
+        if (this.recentPositions.length > 20) {
+          this.recentPositions.shift();
+        }
+
+        ctx.fillStyle = "#F24E45";
+
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 5, 0, Math.PI*2);
+        ctx.fill();
+
+
+        ctx.strokeStyle = "#F24E45";
+        ctx.setLineDash([]);
+        ctx.beginPath();
+        for (var i = 0; i < this.recentPositions.length; i += 1) {
+          ctx.lineTo(this.recentPositions[i].x, this.recentPositions[i].y);
+        }
+        ctx.stroke();
+      }
+    }
+
+    var canvas = document.getElementById("canvas");
+    var ctx = canvas.getContext('2d');
+
+    var stars = [];
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+
+    // Create the universe
+    for (var i = 0; i < 20; i += 1) {      
+      stars.push(new Star(Math.random()*canvas.width, Math.random()*canvas.height));
+    }
+
+    // Create the player
+    player = new Player();
+
+    // var distance = 0, closestDistance = 9999;
+
+    // for (var i = 0; i < stars.length; i += 1) {
+    //   var star = stars[i];
+
+    //   xd = player.x-star.x;
+    //   yd = player.y-star.y;
+
+    //   distance = Math.sqrt(xd*xd + yd*yd);
+
+    //   ctx.font = "14px 'SanFranciscoDisplay-Regular'";
+    //   ctx.fillText(''+distance.toFixed(3), star.x-4,star.y-10);
+
+    //   if (distance < closestDistance) {
+    //     closestDistance = distance;
+    //     closestStar = star;
+    //   }
+    // }
+
+    // closestStar.selected = true;
+    // closestStar.render();
+
+    var lastRender = Date.now();
+
+    function render () {
+      // Update delta
+      delta = Date.now() - lastRender;
+      lastRender = Date.now();
+
+      // Clear the canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Render framerate
+      ctx.font = "14px 'Menlo-Bold'";
+      ctx.fillText(Math.floor(1000/delta), 10, 20);
+
+      // Update player position
+      player.x += (Math.random()-0.5) * 30;
+      player.y += (Math.random()-0.5) * 30;
+
+      // Render the player
+      player.render();
+
+      // Update star distances
+      closestStar = stars[0];
+      for (var i = 0; i < stars.length; i += 1) {
+        var star = stars[i];
+
+        // Update star distance value
+        star.distance = Math.sqrt(Math.pow(player.x-star.x, 2) + Math.pow(player.y-star.y, 2));
+
+        if (star.distance < closestStar.distance) {
+          closestStar = star;
+        }
+      }
+
+      // Render stars
+      for (var i = 0; i < stars.length; i += 1) {
+        var star = stars[i];
+
+        if (star === closestStar) {
+          star.selected = true;
+        } else {
+          star.selected = false;
+        }
+
+        star.render();
+      }
+
+      // Request our next pass
+      requestAnimationFrame(render);
+    }
+
+    // Kick off the game loop
+    render();
+  </script>
+</body>
+</html>
