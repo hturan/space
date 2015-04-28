@@ -66,6 +66,8 @@
       this.x = canvas.width / 2;
       this.y = canvas.height / 2;
 
+      this.motionVector = {x: 0, y: 0};
+
       this.recentPositions = [];
 
       this.render = function () {
@@ -80,7 +82,6 @@
         ctx.beginPath();
         ctx.arc(this.x, this.y, 5, 0, Math.PI*2);
         ctx.fill();
-
 
         ctx.strokeStyle = "#F24E45";
         ctx.setLineDash([]);
@@ -143,14 +144,8 @@
 
       // Render framerate
       ctx.font = "14px 'Menlo-Bold'";
+      ctx.fillStyle = "#FFF";
       ctx.fillText(Math.floor(1000/delta), 10, 20);
-
-      // Update player position
-      player.x += (Math.random()-0.5) * 30;
-      player.y += (Math.random()-0.5) * 30;
-
-      // Render the player
-      player.render();
 
       // Update star distances
       closestStar = stars[0];
@@ -178,8 +173,38 @@
         star.render();
       }
 
+      // Update player position      
+      gravitationalForce = gravity(player.x, player.y, closestStar.x, closestStar.y, 10000);
+
+      if (gravitationalForce.x > 4) {
+        gravitationalForce.x = 4;
+      } else if (gravitationalForce.x < -4) {
+        gravitationalForce.x = -4;
+      }
+
+      if (gravitationalForce.y > 4) {
+        gravitationalForce.y = 4;
+      } else if (gravitationalForce.y < -4) {
+        gravitationalForce.y = -4;
+      }
+
+      player.motionVector.x += gravitationalForce.x;
+      player.motionVector.y += gravitationalForce.y;
+
+      player.x += player.motionVector.x/4;
+      player.y += player.motionVector.y/4;
+
+      // Render the player
+      player.render();
+
       // Request our next pass
       requestAnimationFrame(render);
+    }
+
+    function gravity(x, y, px, py, mass){
+      var r = Math.sqrt((px-x)*(px-x) + (py-y)*(py-y));
+      var g = mass/(r*r); // Gravitational inverse square law, g=m/r^2
+      return {x: (px-x)/r*g,  y: (py-y)/r*g};
     }
 
     // Kick off the game loop
