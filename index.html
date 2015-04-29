@@ -34,8 +34,6 @@
 
       this.distance = null;
 
-      this.selected = false;
-
       this.render = function () {
         ctx.fillStyle = "#FFF";
 
@@ -49,8 +47,19 @@
         ctx.fillText(''+this.distance.toFixed(3), this.x-4,this.y-10);
 
         // Draw selected border
-        if (this.selected) {
-          ctx.strokeStyle = "#FFF";
+        if (this === player.closestStar && this !== player.selectedStar) {
+          ctx.strokeStyle = "#2F3343";
+          ctx.setLineDash([5, 3]);
+
+          ctx.beginPath();
+
+          ctx.arc(this.x, this.y, 40, 0, Math.PI*2);
+
+          ctx.stroke();
+        }
+
+        if (this === player.selectedStar) {
+          ctx.strokeStyle = "#F24E45";
           ctx.setLineDash([5, 3]);
 
           ctx.beginPath();
@@ -65,6 +74,9 @@
     function Player () {
       this.x = canvas.width / 2;
       this.y = canvas.height / 2;
+
+      this.closestStar = null;
+      this.selectedStar = null;
 
       this.motionVector = {x: 0, y: 0};
 
@@ -82,6 +94,10 @@
         ctx.beginPath();
         ctx.arc(this.x, this.y, 5, 0, Math.PI*2);
         ctx.fill();
+
+        // Draw distance tag
+        ctx.font = "14px 'SanFranciscoDisplay-Regular'";
+        ctx.fillText(this.motionVector.x.toFixed(3)+', '+this.motionVector.y.toFixed(3), this.x-4,this.y-10);
 
         ctx.strokeStyle = "#F24E45";
         ctx.setLineDash([]);
@@ -110,28 +126,6 @@
     // Create the player
     player = new Player();
 
-    // var distance = 0, closestDistance = 9999;
-
-    // for (var i = 0; i < stars.length; i += 1) {
-    //   var star = stars[i];
-
-    //   xd = player.x-star.x;
-    //   yd = player.y-star.y;
-
-    //   distance = Math.sqrt(xd*xd + yd*yd);
-
-    //   ctx.font = "14px 'SanFranciscoDisplay-Regular'";
-    //   ctx.fillText(''+distance.toFixed(3), star.x-4,star.y-10);
-
-    //   if (distance < closestDistance) {
-    //     closestDistance = distance;
-    //     closestStar = star;
-    //   }
-    // }
-
-    // closestStar.selected = true;
-    // closestStar.render();
-
     var lastRender = Date.now();
 
     function render () {
@@ -143,9 +137,9 @@
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       // Render framerate
-      ctx.font = "14px 'Menlo-Bold'";
-      ctx.fillStyle = "#FFF";
-      ctx.fillText(Math.floor(1000/delta), 10, 20);
+      // ctx.font = "14px 'Menlo-Bold'";
+      // ctx.fillStyle = "#FFF";
+      // ctx.fillText(Math.floor(1000/delta), 10, 20);
 
       // Update star distances
       closestStar = stars[0];
@@ -160,37 +154,40 @@
         }
       }
 
+      player.closestStar = closestStar;
+
       // Render stars
       for (var i = 0; i < stars.length; i += 1) {
-        var star = stars[i];
-
-        if (star === closestStar) {
-          star.selected = true;
-        } else {
-          star.selected = false;
-        }
-
-        star.render();
+        stars[i].render();
       }
+
+
+      if (player.selectedStar) {
 
       // Update player position      
-      gravitationalForce = gravity(player.x, player.y, closestStar.x, closestStar.y, 10000);
+      gravitationalForce = gravity(player.x, player.y, player.selectedStar.x, player.selectedStar.y, 10000);
 
-      if (gravitationalForce.x > 4) {
-        gravitationalForce.x = 4;
-      } else if (gravitationalForce.x < -4) {
-        gravitationalForce.x = -4;
+      maxGravitationalForce = 3;
+
+      // Limit forces
+      if (gravitationalForce.x > maxGravitationalForce) {
+        gravitationalForce.x = maxGravitationalForce;
+      } else if (gravitationalForce.x < -maxGravitationalForce) {
+        gravitationalForce.x = -maxGravitationalForce;
       }
 
-      if (gravitationalForce.y > 4) {
-        gravitationalForce.y = 4;
-      } else if (gravitationalForce.y < -4) {
-        gravitationalForce.y = -4;
+      if (gravitationalForce.y > maxGravitationalForce) {
+        gravitationalForce.y = maxGravitationalForce;
+      } else if (gravitationalForce.y < -maxGravitationalForce) {
+        gravitationalForce.y = -maxGravitationalForce;
       }
 
+      // Apply gravitational force to player's motion
       player.motionVector.x += gravitationalForce.x;
       player.motionVector.y += gravitationalForce.y;
+      }
 
+      // Update the player's position
       player.x += player.motionVector.x/4;
       player.y += player.motionVector.y/4;
 
@@ -203,12 +200,22 @@
 
     function gravity(x, y, px, py, mass){
       var r = Math.sqrt((px-x)*(px-x) + (py-y)*(py-y));
-      var g = mass/(r*r); // Gravitational inverse square law, g=m/r^2
+      var g = mass/(r*r);
       return {x: (px-x)/r*g,  y: (py-y)/r*g};
     }
 
     // Kick off the game loop
     render();
+
+    window.onkeydown = function (e) {
+      if (!player.selectedStar) {
+        player.selectedStar = player.closestStar;
+      }
+    }
+
+    window.onkeyup = function (e) {
+      player.selectedStar = null;
+    }
   </script>
 </body>
 </html>
