@@ -29,8 +29,7 @@
 
   <script type="text/javascript">
     function Star (x, y) {
-      this.x = x;
-      this.y = y;
+      this.position = {x: x, y: y};
 
       this.distance = null;
 
@@ -39,12 +38,12 @@
 
         // Draw star body
         ctx.beginPath();
-        ctx.arc(this.x, this.y, 3, 0, Math.PI*2);
+        ctx.arc(this.position.x, this.position.y, 3, 0, Math.PI*2);
         ctx.fill();
 
         // Draw distance tag
         ctx.font = "14px 'SanFranciscoDisplay-Regular'";
-        ctx.fillText(''+this.distance.toFixed(3), this.x-4,this.y-10);
+        ctx.fillText(''+this.distance.toFixed(3), this.position.x-4,this.position.y-10);
 
         // Draw selected border
         if (this === player.closestStar && this !== player.selectedStar) {
@@ -53,7 +52,7 @@
 
           ctx.beginPath();
 
-          ctx.arc(this.x, this.y, 40, 0, Math.PI*2);
+          ctx.arc(this.position.x, this.position.y, 40, 0, Math.PI*2);
 
           ctx.stroke();
         }
@@ -64,7 +63,7 @@
 
           ctx.beginPath();
 
-          ctx.arc(this.x, this.y, 40, 0, Math.PI*2);
+          ctx.arc(this.position.x, this.position.y, 40, 0, Math.PI*2);
 
           ctx.stroke();
         }
@@ -72,8 +71,7 @@
     }
 
     function Player () {
-      this.x = canvas.width / 2;
-      this.y = canvas.height / 2;
+      this.position = {x: canvas.width / 2, y: canvas.height / 2};
 
       this.closestStar = null;
       this.selectedStar = null;
@@ -83,7 +81,7 @@
       this.recentPositions = [];
 
       this.render = function () {
-        this.recentPositions.push({x: this.x, y: this.y});
+        this.recentPositions.push({x: this.position.x, y: this.position.y});
 
         if (this.recentPositions.length > 20) {
           this.recentPositions.shift();
@@ -92,12 +90,12 @@
         ctx.fillStyle = "#F24E45";
 
         ctx.beginPath();
-        ctx.arc(this.x, this.y, 5, 0, Math.PI*2);
+        ctx.arc(this.position.x, this.position.y, 5, 0, Math.PI*2);
         ctx.fill();
 
         // Draw distance tag
         ctx.font = "14px 'SanFranciscoDisplay-Regular'";
-        ctx.fillText(this.motionVector.x.toFixed(3)+', '+this.motionVector.y.toFixed(3), this.x-4,this.y-10);
+        ctx.fillText(this.motionVector.x.toFixed(3)+', '+this.motionVector.y.toFixed(3), this.position.x-4,this.position.y-10);
 
         ctx.strokeStyle = "#F24E45";
         ctx.setLineDash([]);
@@ -147,7 +145,7 @@
         var star = stars[i];
 
         // Update star distance value
-        star.distance = Math.sqrt(Math.pow(player.x-star.x, 2) + Math.pow(player.y-star.y, 2));
+        star.distance = Math.sqrt(Math.pow(player.position.x-star.position.x, 2) + Math.pow(player.position.y-star.position.y, 2));
 
         if (star.distance < closestStar.distance) {
           closestStar = star;
@@ -165,7 +163,7 @@
       if (player.selectedStar) {
 
       // Update player position      
-      gravitationalForce = gravity(player.x, player.y, player.selectedStar.x, player.selectedStar.y, 10000);
+      gravitationalForce = gravity(player.position.x, player.position.y, player.selectedStar.position.x, player.selectedStar.position.y, 30000);
 
       maxGravitationalForce = 3;
 
@@ -188,8 +186,8 @@
       }
 
       // Update the player's position
-      player.x += player.motionVector.x/4;
-      player.y += player.motionVector.y/4;
+      player.position.x += player.motionVector.x/4;
+      player.position.y += player.motionVector.y/4;
 
       // Render the player
       player.render();
