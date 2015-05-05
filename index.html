@@ -28,22 +28,27 @@
   <canvas id="canvas"></canvas>
 
   <script type="text/javascript">
+
+  cameraPositon = {x: 0, y: 0};
+
     function Star (x, y) {
       this.position = {x: x, y: y};
 
       this.distance = null;
 
+      this.opacity = Math.random() + 0.4;
+
       this.render = function () {
-        ctx.fillStyle = "#FFF";
+        ctx.fillStyle = "rgba(255,255,255,"+this.opacity+")";
 
         // Draw star body
         ctx.beginPath();
-        ctx.arc(this.position.x, this.position.y, 3, 0, Math.PI*2);
+        ctx.arc(this.position.x - cameraPositon.x, this.position.y - cameraPositon.y, 3*this.opacity, 0, Math.PI*2);
         ctx.fill();
 
         // Draw distance tag
-        ctx.font = "14px 'SanFranciscoDisplay-Regular'";
-        ctx.fillText(''+this.distance.toFixed(3), this.position.x-4,this.position.y-10);
+        // ctx.font = "14px 'SanFranciscoDisplay-Regular'";
+        // ctx.fillText(''+this.distance.toFixed(3), this.position.x - cameraPositon.x-4,this.position.y - cameraPositon.y-10);
 
         // Draw selected border
         if (this === player.closestStar && this !== player.selectedStar) {
@@ -52,7 +57,7 @@
 
           ctx.beginPath();
 
-          ctx.arc(this.position.x, this.position.y, 40, 0, Math.PI*2);
+          ctx.arc(this.position.x - cameraPositon.x, this.position.y - cameraPositon.y, 40, 0, Math.PI*2);
 
           ctx.stroke();
         }
@@ -63,7 +68,7 @@
 
           ctx.beginPath();
 
-          ctx.arc(this.position.x, this.position.y, 40, 0, Math.PI*2);
+          ctx.arc(this.position.x - cameraPositon.x, this.position.y - cameraPositon.y, 40, 0, Math.PI*2);
 
           ctx.stroke();
         }
@@ -90,18 +95,18 @@
         ctx.fillStyle = "#F24E45";
 
         ctx.beginPath();
-        ctx.arc(this.position.x, this.position.y, 5, 0, Math.PI*2);
+        ctx.arc(this.position.x - cameraPositon.x, this.position.y - cameraPositon.y, 5, 0, Math.PI*2);
         ctx.fill();
 
         // Draw distance tag
-        ctx.font = "14px 'SanFranciscoDisplay-Regular'";
-        ctx.fillText(this.motionVector.x.toFixed(3)+', '+this.motionVector.y.toFixed(3), this.position.x-4,this.position.y-10);
+        // ctx.font = "14px 'SanFranciscoDisplay-Regular'";
+        // ctx.fillText(this.motionVector.x.toFixed(3)+', '+this.motionVector.y.toFixed(3), this.position.x - cameraPositon.x-4,this.position.y - cameraPositon.y-10);
 
         ctx.strokeStyle = "#F24E45";
         ctx.setLineDash([]);
         ctx.beginPath();
         for (var i = 0; i < this.recentPositions.length; i += 1) {
-          ctx.lineTo(this.recentPositions[i].x, this.recentPositions[i].y);
+          ctx.lineTo(this.recentPositions[i].x - cameraPositon.x, this.recentPositions[i].y - cameraPositon.y);
         }
         ctx.stroke();
       }
@@ -117,8 +122,8 @@
 
 
     // Create the universe
-    for (var i = 0; i < 20; i += 1) {      
-      stars.push(new Star(Math.random()*canvas.width, Math.random()*canvas.height));
+    for (var i = 0; i < 1000; i += 1) {      
+      stars.push(new Star((Math.random() - 0.5)*canvas.width*8, (Math.random() - 0.5)*canvas.height*8));
     }
 
     // Create the player
@@ -154,18 +159,13 @@
 
       player.closestStar = closestStar;
 
-      // Render stars
-      for (var i = 0; i < stars.length; i += 1) {
-        stars[i].render();
-      }
-
 
       if (player.selectedStar) {
 
       // Update player position      
-      gravitationalForce = gravity(player.position.x, player.position.y, player.selectedStar.position.x, player.selectedStar.position.y, 30000);
+      gravitationalForce = gravity(player.position.x, player.position.y, player.selectedStar.position.x, player.selectedStar.position.y, 50000);
 
-      maxGravitationalForce = 3;
+      maxGravitationalForce = 4;
 
       // Limit forces
       if (gravitationalForce.x > maxGravitationalForce) {
@@ -191,6 +191,16 @@
 
       // Render the player
       player.render();
+
+      cameraPositon = {
+        x: player.position.x - (canvas.width/2),
+        y: player.position.y - (canvas.height/2)
+      };
+
+      // Render stars
+      for (var i = 0; i < stars.length; i += 1) {
+        stars[i].render();
+      }
 
       // Request our next pass
       requestAnimationFrame(render);
