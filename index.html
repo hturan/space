@@ -28,9 +28,6 @@
   <canvas id="canvas"></canvas>
 
   <script type="text/javascript">
-
-  cameraPositon = {x: 0, y: 0};
-
     function Star (x, y) {
       this.position = {x: x, y: y};
 
@@ -43,32 +40,33 @@
 
         // Draw star body
         ctx.beginPath();
-        ctx.arc(this.position.x - cameraPositon.x, this.position.y - cameraPositon.y, 3*this.opacity, 0, Math.PI*2);
+        ctx.arc(this.position.x - cameraPosition.x, this.position.y - cameraPosition.y, 3*this.opacity, 0, Math.PI*2);
         ctx.fill();
 
         // Draw distance tag
         // ctx.font = "14px 'SanFranciscoDisplay-Regular'";
-        // ctx.fillText(''+this.distance.toFixed(3), this.position.x - cameraPositon.x-4,this.position.y - cameraPositon.y-10);
+        // ctx.fillText(''+this.distance.toFixed(3), this.position.x - cameraPosition.x-4,this.position.y - cameraPosition.y-10);
 
-        // Draw selected border
+        // Draw 'closest' border
         if (this === player.closestStar && this !== player.selectedStar) {
           ctx.strokeStyle = "#2F3343";
           ctx.setLineDash([5, 3]);
 
           ctx.beginPath();
 
-          ctx.arc(this.position.x - cameraPositon.x, this.position.y - cameraPositon.y, 40, 0, Math.PI*2);
+          ctx.arc(this.position.x - cameraPosition.x, this.position.y - cameraPosition.y, 40, 0, Math.PI*2);
 
           ctx.stroke();
         }
 
+        // Draw 'selected' border
         if (this === player.selectedStar) {
           ctx.strokeStyle = "#F24E45";
           ctx.setLineDash([5, 3]);
 
           ctx.beginPath();
 
-          ctx.arc(this.position.x - cameraPositon.x, this.position.y - cameraPositon.y, 40, 0, Math.PI*2);
+          ctx.arc(this.position.x - cameraPosition.x, this.position.y - cameraPosition.y, 40, 0, Math.PI*2);
 
           ctx.stroke();
         }
@@ -95,18 +93,18 @@
         ctx.fillStyle = "#F24E45";
 
         ctx.beginPath();
-        ctx.arc(this.position.x - cameraPositon.x, this.position.y - cameraPositon.y, 5, 0, Math.PI*2);
+        ctx.arc(this.position.x - cameraPosition.x, this.position.y - cameraPosition.y, 5, 0, Math.PI*2);
         ctx.fill();
 
         // Draw distance tag
         // ctx.font = "14px 'SanFranciscoDisplay-Regular'";
-        // ctx.fillText(this.motionVector.x.toFixed(3)+', '+this.motionVector.y.toFixed(3), this.position.x - cameraPositon.x-4,this.position.y - cameraPositon.y-10);
+        // ctx.fillText(this.motionVector.x.toFixed(3)+', '+this.motionVector.y.toFixed(3), this.position.x - cameraPosition.x-4,this.position.y - cameraPosition.y-10);
 
         ctx.strokeStyle = "#F24E45";
         ctx.setLineDash([]);
         ctx.beginPath();
         for (var i = 0; i < this.recentPositions.length; i += 1) {
-          ctx.lineTo(this.recentPositions[i].x - cameraPositon.x, this.recentPositions[i].y - cameraPositon.y);
+          ctx.lineTo(this.recentPositions[i].x - cameraPosition.x, this.recentPositions[i].y - cameraPosition.y);
         }
         ctx.stroke();
       }
@@ -117,9 +115,10 @@
 
     var stars = [];
 
+    var cameraPosition = {x: canvas.width / 2, y: canvas.height / 2};
+
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-
 
     // Create the universe
     for (var i = 0; i < 1000; i += 1) {      
@@ -192,7 +191,7 @@
       // Render the player
       player.render();
 
-      cameraPositon = {
+      cameraPosition = {
         x: player.position.x - (canvas.width/2),
         y: player.position.y - (canvas.height/2)
       };
